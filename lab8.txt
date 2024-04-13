@@ -1,0 +1,29 @@
+Lab 8: Github Repo Setup
+
+Sahil Nepal
+
+user@sahil-ubuntu:~/Downloads/osproject1$ ./browser
+Connected to 127.0.0.1:7000.
+Running Session #0:
+x = 1
+x = 1.000000
+
+y = 2
+x = 1.000000
+y = 2.000000
+
+z = 3
+x = 1.000000
+y = 2.000000
+z = 3.000000
+
+
+user@sahil-ubuntu:~/Downloads/osproject1$ ./server
+The server is now listening on port 7000.
+Successfully accepted Browser #0 for Session #0.
+Received message from Browser #0 for Session #0: x = 1
+Received message from Browser #0 for Session #0: y = 2
+Received message from Browser #0 for Session #0: z = 3
+
+
+
