@@ -80,15 +80,36 @@ void read_user_input(char message[]) {
  */
 void load_cookie() {
     // TODO
-    session_id = -1;
+    FILE *fi;                                                                       
+
+    if(fi = fopen(COOKIE_PATH, "r")){                                               
+        char data[BUFFER_LEN];
+        memset(data, 0, BUFFER_LEN);
+        char a[1] = {'0'};
+        while(a[0] != EOF){
+            a[0] = fgetc(fi);
+            if(a[0] != EOF){
+                strncat(data,a,1);
+            }
+        }
+        session_id = atoi(data);
+    }
+    else{                                                                           
+        session_id = -1;
+    }
 }
 
 /**
  * Saves the session ID to the cookie on the disk.
  * The file path of the cookie is stored in COOKIE_PATH.
  */
-void save_cookie() {
+void save_cookie() {                                                                   
     // TODO
+    FILE *fi;
+    fi = fopen(COOKIE_PATH, "w+");
+    char output[BUFFER_LEN];
+    fprintf(fi, "%d", session_id);
+    fclose(fi);
 }
 
 /**
@@ -108,9 +129,17 @@ void register_server() {
  * if the browser is on.
  */
 void server_listener() {
+    while (browser_on){
     char message[BUFFER_LEN];
     receive_message(server_socket_fd, message);
-    puts(message);
+
+    if(strcmp(message, "ERROR") == 0)
+        puts("Invalid input!");
+    else
+        puts(message);
+    }
+    
+    
 }
 
 /**
@@ -151,13 +180,22 @@ void start_browser(const char host_ip[], int port) {
     save_cookie();
 
     // Main loop to read in the user's input and send it out.
+
+    pthread_t tid;                                                                          
+    //pthread_create(&tid, NULL, (void *)server_listener, NULL);                              
+    //pthread_create(&tid, NULL, (void *(*)(void *))server_listener, NULL);
+    pthread_create(&tid, NULL, reinterpret_cast<void* (*)(void*)>(server_listener), NULL);
+    //pthread_create(&tid, NULL, reinterpret_cast<void* (*)(void*)>(server_listener), reinterpret_cast<void*>(nullptr));
+
+
+
     while (browser_on) {
         char message[BUFFER_LEN];
         read_user_input(message);
         send_message(server_socket_fd, message);
-        server_listener();
+        //server_listener();
     }
-
+    pthread_join(tid, NULL);                                                                
     // Closes the socket.
     close(server_socket_fd);
     printf("Closed the connection to %s:%d.\n", host_ip, port);
@@ -171,9 +209,8 @@ void start_browser(const char host_ip[], int port) {
  * @return exit code
  */
 int main(int argc, char *argv[]) {
-    char *host_ip = DEFAULT_HOST_IP;
+    const char *host_ip = DEFAULT_HOST_IP;                                                      
     int port = DEFAULT_PORT;
-
     if (argc == 1) {
     } else if ((argc == 3)
                && ((strcmp(argv[1], "--host") == 0) || (strcmp(argv[1], "-h") == 0))) {
